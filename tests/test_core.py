@@ -47,6 +47,15 @@ class NetworkTests(unittest.TestCase):
                 usable_network(value)
         self.assertEqual(usable_network("192.168.0.0/20").num_addresses - 2, 4094)
 
+    def test_all_local_addresses_on_the_interface_are_retained(self):
+        addresses = [{"ifname": "eth0", "operstate": "UP", "address": "AA:BB:CC:DD:EE:FF",
+                      "addr_info": [{"family": "inet", "scope": "global", "local": ip, "prefixlen": 24}
+                                    for ip in ("192.168.1.10", "192.168.1.11")]}]
+        networks = parse_interfaces(addresses, [])
+        self.assertEqual(len(networks), 1)
+        self.assertEqual(networks[0]["local_ips"], ["192.168.1.10", "192.168.1.11"])
+        self.assertEqual(networks[0]["mac"], "AA:BB:CC:DD:EE:FF")
+
 
 class StoreTests(unittest.TestCase):
     def setUp(self):
@@ -84,6 +93,12 @@ class StoreTests(unittest.TestCase):
     def test_new_mac_does_not_inherit_old_discovered_name(self):
         self.store.commit("192.168.1.0/24", [host()], 1, [])
         self.store.commit("192.168.1.0/24", [host(name="", mac="01:02:03:04:05:06")], 1, [])
+        self.assertEqual(self.store.snapshot("192.168.1.0/24")["rows"][9]["name"], "")
+
+    def test_local_host_label_is_not_kept_for_a_remote_device(self):
+        self.store.commit("192.168.1.0/24", [{**host(name=""), "role": "local_host"}], 1, [])
+        self.assertEqual(self.store.snapshot("192.168.1.0/24")["rows"][9]["name"], "שרת Home Assistant")
+        self.store.commit("192.168.1.0/24", [host(name="")], 1, [])
         self.assertEqual(self.store.snapshot("192.168.1.0/24")["rows"][9]["name"], "")
 
     def test_failed_disk_write_rolls_back_memory(self):
@@ -135,6 +150,44 @@ class ScannerTests(unittest.TestCase):
                 self.assertFalse(launch.call_args.kwargs.get("shell", False))
             self.assertIsNone(manager.state()["error"])
             self.assertEqual(store.snapshot("192.168.1.0/24")["counts"]["occupied"], 1)
+
+    def test_missing_local_arp_response_does_not_reject_other_results(self):
+        # Reproduce a successful LAN scan where Nmap reports the router but not HA itself.
+        xml = XML.replace("192.168.1.10", "192.168.1.1").replace("homeassistant.local", "router.home")
+        selected = {**DEMO_NETWORK, "local_ips": ["192.168.1.10", "192.168.1.11"],
+                    "mac": "12:34:56:78:9A:BC"}
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(directory)
+            manager = ScanManager(store, mdns=False)
+            with patch("scanner.LOG"), patch("scanner.subprocess.Popen") as launch:
+                launch.return_value.communicate.return_value = (xml, "")
+                launch.return_value.returncode = 0
+                manager.start(selected)
+                manager.thread.join(timeout=2)
+            self.assertIsNone(manager.state()["error"])
+            snapshot = store.snapshot(selected["cidr"])
+            self.assertEqual(snapshot["counts"]["occupied"], 3)
+            self.assertEqual(snapshot["rows"][0]["name"], "router.home")
+            for index in (9, 10):
+                self.assertEqual(snapshot["rows"][index]["name"], "שרת Home Assistant")
+                self.assertEqual(snapshot["rows"][index]["mac"], selected["mac"])
+                self.assertEqual(snapshot["rows"][index]["source"], "Local interface")
+
+    def test_local_addresses_outside_selected_subnet_are_not_added(self):
+        xml = XML.replace("192.168.1.10", "192.168.1.1").replace("homeassistant.local", "router.home")
+        selected = {**DEMO_NETWORK, "host_ip": "10.0.0.10", "local_ips": ["10.0.0.10"]}
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(directory)
+            manager = ScanManager(store, mdns=False)
+            with patch("scanner.subprocess.Popen") as launch:
+                launch.return_value.communicate.return_value = (xml, "")
+                launch.return_value.returncode = 0
+                manager.start(selected)
+                manager.thread.join(timeout=2)
+            self.assertIsNone(manager.state()["error"])
+            snapshot = store.snapshot(selected["cidr"])
+            self.assertEqual(snapshot["counts"]["occupied"], 1)
+            self.assertEqual(snapshot["rows"][9]["status"], "unobserved")
 
     def test_empty_and_incomplete_scan_do_not_mark_addresses_free(self):
         for xml in (XML.replace('state="up"', 'state="down"'), XML.replace('total="256"', 'total="128"')):

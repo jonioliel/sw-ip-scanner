@@ -12,6 +12,8 @@ permissions:
 jobs:
   tests:
     name: Python tests
+    outputs:
+      version: ${{ steps.config.outputs.version }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -22,10 +24,12 @@ jobs:
       - name: Run tests
         run: python -m unittest discover -s tests -v
       - name: Verify app configuration
+        id: config
         run: |
           python -m pip install PyYAML
           python - <<'PY'
           from pathlib import Path
+          import os
           import yaml
           config = yaml.safe_load(Path('ip_scanner/config.yaml').read_text())
           repo = yaml.safe_load(Path('repository.yaml').read_text())
@@ -35,6 +39,8 @@ jobs:
           assert set(config['options']) == set(config['schema'])
           assert config['arch'] == ['amd64', 'aarch64']
           assert repo['name'] and repo['url']
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"version={config['version']}\n")
           print('App configuration checked')
           PY
 
@@ -61,7 +67,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: false
           build-args: |
-            BUILD_VERSION=0.1.0
+            BUILD_VERSION=${{ needs.tests.outputs.version }}
             BUILD_ARCH=${{ matrix.arch }}
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}

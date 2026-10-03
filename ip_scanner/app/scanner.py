@@ -119,6 +119,8 @@ class ScanManager:
         started, warnings = time.monotonic(), []
         process = None
         try:
+            LOG.info("Scanning %s on %s; local address=%s", selected["cidr"],
+                     selected["interface"], selected["host_ip"])
             # No shell, no user-controlled flags, no port scan. Force ARP on an attached interface.
             command = ["nmap", "-sn", "-PR", "-e", selected["interface"], "--max-retries", "2",
                        "--host-timeout", "20s", "-oX", "-", selected["cidr"]]
@@ -137,10 +139,22 @@ class ScanManager:
             hosts = parse_nmap(stdout, selected["cidr"])
             if not hosts:
                 raise RuntimeError("לא התקבלה אף תגובה. התוצאות הקודמות נשמרו; לא סומנו כתובות כפנויות")
-            # On a full-subnet scan, the scanner must observe its own host address.
-            if ipaddress.ip_address(selected["host_ip"]) in ipaddress.ip_network(selected["cidr"]):
-                if not any(h["ip"] == selected["host_ip"] for h in hosts):
-                    raise RuntimeError("כתובת שרת HA לא זוהתה בסריקה; התוצאות הקודמות נשמרו")
+            arp_count = len(hosts)
+            # An assigned local address is in use even when the host cannot ARP itself.
+            # Add it only after a complete, nonempty scan so it cannot mask scan failures.
+            network = ipaddress.ip_network(selected["cidr"])
+            by_ip = {host["ip"]: host for host in hosts}
+            local_ips = [selected["host_ip"], *selected.get("local_ips", [])]
+            for value in dict.fromkeys(local_ips):
+                ip = ipaddress.ip_address(value)
+                if ip not in network or ip in (network.network_address, network.broadcast_address):
+                    continue
+                value = str(ip)
+                if value not in by_ip:
+                    by_ip[value] = {"ip": value, "hostname": "", "mac": selected.get("mac", ""),
+                                   "vendor": "", "source": "Local interface"}
+                by_ip[value]["role"] = "local_host"
+            hosts = list(by_ip.values())
             if self.mdns:
                 self._phase("names")
                 try:
@@ -159,6 +173,8 @@ class ScanManager:
                 if self.cancel.is_set():
                     return
                 self.store.commit(selected["cidr"], hosts, time.monotonic() - started, warnings)
+            LOG.info("Scan complete: %s; %s discovered hosts, %s occupied addresses; %.1fs",
+                     selected["cidr"], arp_count, len(hosts), time.monotonic() - started)
         except subprocess.TimeoutExpired:
             if process:
                 process.kill()

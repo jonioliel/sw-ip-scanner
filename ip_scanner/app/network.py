@@ -1,6 +1,7 @@
 """Discover directly attached IPv4 networks, excluding container/VPN interfaces."""
 import ipaddress
 import json
+import re
 import subprocess
 
 MAX_HOSTS = 4094
@@ -22,7 +23,7 @@ def usable_network(value):
 def parse_interfaces(addresses, routes):
     defaults = {r.get("dev"): r.get("gateway") for r in routes if r.get("dst") == "default"}
     found = []
-    seen = set()
+    seen = {}
     for interface in addresses:
         name = interface.get("ifname", "")
         if not name or name.startswith(EXCLUDED):
@@ -37,14 +38,20 @@ def parse_interfaces(addresses, routes):
                 continue
             key = (str(address.network), name)
             if key in seen:
+                if str(address.ip) not in seen[key]["local_ips"]:
+                    seen[key]["local_ips"].append(str(address.ip))
                 continue
-            seen.add(key)
-            found.append({
+            mac = interface.get("address") or ""
+            entry = {
                 "cidr": str(address.network), "interface": name, "host_ip": str(address.ip),
+                "local_ips": [str(address.ip)],
+                "mac": mac.upper() if re.fullmatch(r"(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", mac) else "",
                 "gateway": defaults.get(name), "default": name in defaults,
                 "host_count": max(address.network.num_addresses - 2, 0),
                 "supported": 20 <= address.network.prefixlen <= 30,
-            })
+            }
+            seen[key] = entry
+            found.append(entry)
     return sorted(found, key=lambda n: (not n["default"], n["interface"], n["cidr"]))
 
 

@@ -2,12 +2,15 @@
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 import hashlib
+import re
 
 root = Path(__file__).resolve().parents[1]
 addon = root / "ip_scanner"
 output = root / "output"
 output.mkdir(exist_ok=True)
-destination = output / "ip-scanner-addon-0.1.0.zip"
+version = re.search(r'^version:\s*"([0-9.]+)"\s*$',
+                    (addon / "config.yaml").read_text(encoding="utf-8"), re.MULTILINE).group(1)
+destination = output / f"ip-scanner-addon-{version}.zip"
 with ZipFile(destination, "w", ZIP_DEFLATED) as archive:
     archive.write(root / "README.md", "INSTALL.md")
     for path in sorted(addon.rglob("*")):

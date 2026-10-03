@@ -1,5 +1,5 @@
 name: IP Scanner
-version: "0.1.0"
+version: "0.1.1"
 slug: ip_scanner
 description: Local network discovery, device names, address availability and ranges.
 url: https://github.com/jonioliel/sw-ip-scanner

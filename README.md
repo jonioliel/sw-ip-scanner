@@ -30,11 +30,11 @@
 - שמות מותאמים, היסטוריה שנשמרת בהפעלה מחדש וסריקה מחזורית.
 - ממשק בעברית, התאמה לטלפון, מצב בהיר וכהה.
 
-**הסטטוס: גרסת 0.1.0 ניסיונית מוכנה להתקנה לבדיקה.** עברו 16 בדיקות לוגיקה ו־API ובדיקות ממשק ההדגמה. ב־GitHub Actions עברו גם הבדיקות על Linux ובניית Docker ל־amd64 ול־aarch64. סריקה אמיתית והפעלת Ingress על Home Assistant OS עדיין דורשות אימות על שרת HA. [תוצאות הבדיקות והבנייה](https://github.com/jonioliel/sw-ip-scanner/actions/workflows/validate.yml).
+**הסטטוס: גרסת 0.1.1 ניסיונית.** הגרסה מתקנת כשל בסריקה כאשר כתובת שרת HA אינה מופיעה בתוצאות ARP, ומשתמשת בכתובות הממשק המקומי כדי לסמן את השרת כתפוס. 20 בדיקות לוגיקה ו־API מכסות גם את המקרה הזה. [תוצאות הבדיקות והבנייה ל־amd64 ול־aarch64](https://github.com/jonioliel/sw-ip-scanner/actions/workflows/validate.yml). עדיין יש לאמת את הסריקה על שרת HA לאחר העדכון.
 
 ## התקנה מקומית
 
-1. חלץ את `output/ip-scanner-addon-0.1.0.zip`.
+1. חלץ את `output/ip-scanner-addon-0.1.1.zip` (אפשר ליצור את החבילה באמצעות `python tools/package_addon.py`).
 2. העתק את התיקייה `ip_scanner` במלואה אל `/addons/ip_scanner` בשרת Home Assistant, באמצעות כלי הגישה שלך, למשל Samba או SSH. אין להעתיק אל `/config/custom_components`.
 3. ב־Home Assistant פתח **הגדרות → Apps / תוספים → חנות** ובתפריט ⋮ בחר **בדיקת עדכונים** / **Check for updates**.
 4. תחת **Local apps / Local add-ons** בחר **IP Scanner** ולחץ **התקנה**. הבנייה הראשונה מורידה את התלויות ודורשת חיבור לאינטרנט.

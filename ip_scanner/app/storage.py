@@ -58,6 +58,8 @@ class Store:
                 # Do not carry a name across a detected MAC-address change.
                 same_device = not (old.get("mac") and host.get("mac") and old["mac"] != host["mac"])
                 merged = {**(old if same_device else {}), **host}
+                # This role is current interface evidence, not historical device identity.
+                merged["role"] = host.get("role")
                 for key in ("hostname", "vendor", "mac"):
                     if not merged.get(key) and same_device:
                         merged[key] = old.get(key, "")
@@ -98,7 +100,8 @@ class Store:
             device = devices.get(value, {})
             alias = aliases.get(f"{cidr}|{value}", "")
             rows.append({"ip": value, "status": device.get("status", "unobserved" if scanned else "unscanned"),
-                         "name": alias or device.get("hostname") or "", "alias": alias,
+                         "name": alias or device.get("hostname") or (
+                             "שרת Home Assistant" if device.get("role") == "local_host" else ""), "alias": alias,
                          "hostname": device.get("hostname", ""), "mac": device.get("mac", ""),
                          "vendor": device.get("vendor", ""), "source": device.get("source", ""),
                          "last_seen": device.get("last_seen"), "first_seen": device.get("first_seen")})
