@@ -2,7 +2,7 @@ name: IP Scanner
 version: "0.1.0"
 slug: ip_scanner
 description: Local network discovery, device names, address availability and ranges.
-url: https://github.com/jonioliel/ha-ip-scanner
+url: https://github.com/jonioliel/sw-ip-scanner
 arch:
   - amd64
   - aarch64

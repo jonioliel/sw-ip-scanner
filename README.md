@@ -1,6 +1,6 @@
 # IP Scanner for Home Assistant
 
-[![Validate app](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml/badge.svg)](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml)
+[![Validate app](https://github.com/jonioliel/sw-ip-scanner/actions/workflows/validate.yml/badge.svg)](https://github.com/jonioliel/sw-ip-scanner/actions/workflows/validate.yml)
 
 תוסף מקומי ל־Home Assistant OS שמציג את רשת ה־IPv4 שאליה מחובר השרת, דרך Ingress בתוך Home Assistant.
 
@@ -10,13 +10,13 @@
 2. בתפריט ⋮ בחר **Repositories / מאגרים** והוסף:
 
    ```text
-   https://github.com/jonioliel/ha-ip-scanner
+   https://github.com/jonioliel/sw-ip-scanner
    ```
 
 3. סגור את החלון ורענן את החנות. בחר **IP Scanner** מתוך המאגר החדש ולחץ **התקנה**.
 4. הפעל את התוסף ובחר **הצג בסרגל הצד** או **פתח ממשק Web**.
 
-אפשר גם להתחיל דרך [הוספת המאגר ל־Home Assistant](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fjonioliel%2Fha-ip-scanner).
+אפשר גם להתחיל דרך [הוספת המאגר ל־Home Assistant](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fjonioliel%2Fsw-ip-scanner).
 
 הבנייה מתבצעת על שרת HA בהתקנה הראשונה ודורשת חיבור לאינטרנט. אין צורך להעתיק קבצים ידנית במסלול ההתקנה הזה. פירוט ההגדרות נמצא ב־[תיעוד התוסף](ip_scanner/DOCS.md).
 
@@ -30,7 +30,7 @@
 - שמות מותאמים, היסטוריה שנשמרת בהפעלה מחדש וסריקה מחזורית.
 - ממשק בעברית, התאמה לטלפון, מצב בהיר וכהה.
 
-**הסטטוס: גרסת 0.1.0 ניסיונית מוכנה להתקנה לבדיקה.** עברו 16 בדיקות לוגיקה ו־API ובדיקות ממשק ההדגמה. ב־GitHub Actions עברו גם הבדיקות על Linux ובניית Docker ל־amd64 ול־aarch64. סריקה אמיתית והפעלת Ingress על Home Assistant OS עדיין דורשות אימות על שרת HA. [תוצאות הבדיקות והבנייה](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml).
+**הסטטוס: גרסת 0.1.0 ניסיונית מוכנה להתקנה לבדיקה.** עברו 16 בדיקות לוגיקה ו־API ובדיקות ממשק ההדגמה. ב־GitHub Actions עברו גם הבדיקות על Linux ובניית Docker ל־amd64 ול־aarch64. סריקה אמיתית והפעלת Ingress על Home Assistant OS עדיין דורשות אימות על שרת HA. [תוצאות הבדיקות והבנייה](https://github.com/jonioliel/sw-ip-scanner/actions/workflows/validate.yml).
 
 ## התקנה מקומית
 
