@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IP Scanner · Home Assistant</title>
+  <style>body:has(> #ip-scanner) { margin: 0; }
+#ip-scanner { --ip-bg: light-dark(#f5f7fa,#101820); --ip-surface: light-dark(#ffffff,#19242e); --ip-ink: light-dark(#20323c,#edf4f8); --ip-muted: light-dark(#697b87,#a2b3c0); --ip-line: light-dark(#e5ebef,#2d3c48); --ip-accent: light-dark(#087f87,#59ced1); --ip-accent-ink: light-dark(#ffffff,#092c31); --ip-active: light-dark(#e4f5f2,#153b38); --ip-active-ink: light-dark(#197365,#83dacb); --ip-free: light-dark(#f0f3f6,#24313c); --ip-free-ink: light-dark(#728390,#adbecd); --ip-known: light-dark(#fff1d4,#43341c); --ip-known-ink: light-dark(#996810,#f6cf7b); color-scheme: light dark; background: var(--ip-bg); color: var(--ip-ink); font: 14px/1.5 'Segoe UI',Arial,sans-serif; text-align: right; overflow-wrap: anywhere; }
+#ip-scanner *, #ip-scanner *::before, #ip-scanner *::after { box-sizing: border-box; }
+#ip-scanner [hidden] { display: none !important; }
+#ip-scanner button, #ip-scanner input, #ip-scanner select { font: inherit; }
+#ip-scanner button { border: 0; color: inherit; border-radius: 9px; background: transparent; min-height: 38px; padding: 8px 14px; }
+#ip-scanner button:hover { background: var(--ip-free); }
+#ip-scanner button:disabled { opacity: .45; }
+#ip-scanner input, #ip-scanner select { color: var(--ip-ink); background: var(--ip-surface); border: 1px solid var(--ip-line); border-radius: 8px; min-height: 38px; padding: 8px 12px; max-width: 100%; }
+#ip-scanner .topbar { min-height: 77px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 32px; border-bottom: 1px solid var(--ip-line); background: var(--ip-surface); }
+#ip-scanner .identity { display: flex; align-items: center; gap: 11px; direction: ltr; text-align: left; }
+#ip-scanner .brand-mark { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 12px; color: var(--ip-accent-ink); background: var(--ip-accent); font-size: 32px; line-height: 1; }
+#ip-scanner .identity b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.4px; }
+#ip-scanner .identity div > span { display: block; color: var(--ip-muted); font-size: 11px; letter-spacing: 1.1px; margin-top: 2px; }
+#ip-scanner .top-actions { display: flex; align-items: center; gap: 10px; }
+#ip-scanner .demo-label { font-size: 12px; color: var(--ip-known-ink); background: var(--ip-known); border-radius: 20px; padding: 5px 11px; }
+#ip-scanner .icon-button { font-size: 21px; padding: 3px 10px; }
+#ip-scanner .workspace { max-width: 1320px; margin: 0 auto; padding: 32px; }
+#ip-scanner .heading { display: flex; justify-content: space-between; align-items: center; gap: 22px; margin-bottom: 27px; }
+#ip-scanner .eyebrow { font-size: 12px; color: var(--ip-accent); margin-bottom: 5px; }
+#ip-scanner h1 { font-size: clamp(25px,3.3vw,34px); letter-spacing: -.9px; margin: 0; font-weight: 600; line-height: 1.25; }
+#ip-scanner .heading p { color: var(--ip-muted); margin: 8px 0 0; }
+#ip-scanner .primary { background: var(--ip-accent); color: var(--ip-accent-ink); padding: 11px 18px; white-space: nowrap; }
+#ip-scanner .primary:hover { background: var(--ip-accent); filter: brightness(.95); }
+#ip-scanner .primary > span:first-child { font-size: 20px; vertical-align: middle; margin-inline-end: 5px; }
+#ip-scanner .network-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 13px 16px; background: var(--ip-surface); border: 1px solid var(--ip-line); border-radius: 12px; margin-bottom: 18px; }
+#ip-scanner .network-field { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+#ip-scanner .network-field select { font: 13px ui-monospace,Consolas,monospace; border: 0; background: var(--ip-free); }
+#ip-scanner .interface { color: var(--ip-muted); font: 12px ui-monospace,Consolas,monospace; }
+#ip-scanner .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ip-accent); }
+#ip-scanner .scan-meta { font-size: 12px; color: var(--ip-muted); }
+#ip-scanner .notice { border-radius: 9px; background: var(--ip-known); color: var(--ip-known-ink); padding: 11px 15px; margin-bottom: 16px; }
+#ip-scanner .notice.error { background: light-dark(#fff0ee,#442728); color: light-dark(#a03535,#ffb4ac); }
+#ip-scanner .metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; margin-bottom: 22px; }
+#ip-scanner .metric { background: var(--ip-surface); border: 1px solid var(--ip-line); border-radius: 12px; padding: 17px 19px; }
+#ip-scanner .metric > span { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+#ip-scanner .metric strong { font-size: 34px; line-height: 1.5; font-weight: 500; display: block; font-variant-numeric: tabular-nums; }
+#ip-scanner .metric small { display: block; font-size: 11px; color: var(--ip-muted); }
+#ip-scanner .dot { display: inline-block; flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; vertical-align: middle; }
+#ip-scanner .dot.occupied { background: var(--ip-active-ink); }
+#ip-scanner .dot.unobserved { background: var(--ip-free-ink); }
+#ip-scanner .dot.known { background: var(--ip-known-ink); }
+#ip-scanner .dot.neutral { background: var(--ip-muted); }
+#ip-scanner h2 { font-size: 15px; font-weight: 600; margin: 0; }
+#ip-scanner .map-panel { background: var(--ip-surface); border: 1px solid var(--ip-line); border-radius: 12px; padding: 18px 20px 14px; margin-bottom: 22px; }
+#ip-scanner .section-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+#ip-scanner .section-title > div:first-child { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#ip-scanner .section-title .mono { color: var(--ip-muted); font-size: 12px; }
+#ip-scanner .mono { direction: ltr; unicode-bidi: isolate; font: 12px ui-monospace,Consolas,monospace; white-space: nowrap; }
+#ip-scanner .map-controls { display: flex; align-items: center; gap: 2px; direction: ltr; color: var(--ip-muted); font-size: 11px; }
+#ip-scanner .map-controls button { min-height: 26px; padding: 2px 8px; }
+#ip-scanner .address-grid { display: grid; grid-template-columns: repeat(32,minmax(0,1fr)); gap: 4px; direction: ltr; }
+#ip-scanner .address-grid button { background: var(--ip-free); color: var(--ip-free-ink); border-radius: 4px; min-height: 25px; padding: 3px 0; font: 11px/1.4 ui-monospace,Consolas,monospace; font-variant-numeric: tabular-nums; }
+#ip-scanner .address-grid button.occupied { background: var(--ip-active); color: var(--ip-active-ink); font-weight: 600; }
+#ip-scanner .address-grid button.known { background: var(--ip-known); color: var(--ip-known-ink); }
+#ip-scanner .address-grid button.unscanned { opacity: .5; }
+#ip-scanner .address-grid button[aria-pressed=true] { box-shadow: 0 0 0 2px var(--ip-accent); }
+#ip-scanner .map-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; color: var(--ip-muted); font-size: 11px; }
+#ip-scanner .legend { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; }
+#ip-scanner .legend > span { display: flex; align-items: center; gap: 5px; }
+#ip-scanner .table-panel { border: 1px solid var(--ip-line); border-radius: 12px; overflow: hidden; background: var(--ip-surface); }
+#ip-scanner .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px 0; border-bottom: 1px solid var(--ip-line); }
+#ip-scanner .tabs { display: flex; align-items: stretch; gap: 6px; }
+#ip-scanner .tabs button { color: var(--ip-muted); border-radius: 0; border-bottom: 2px solid transparent; padding: 12px 10px; font-size: 13px; }
+#ip-scanner .tabs button.active { border-color: var(--ip-accent); color: var(--ip-accent); }
+#ip-scanner .tabs button span { background: var(--ip-free); border-radius: 5px; padding: 1px 5px; font-size: 11px; margin-inline-start: 4px; }
+#ip-scanner .export { color: var(--ip-muted); font-size: 12px; white-space: nowrap; }
+#ip-scanner .filter-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 15px 20px; }
+#ip-scanner .search-field { display: flex; align-items: center; position: relative; flex: 1; min-width: 150px; max-width: 360px; }
+#ip-scanner .search-field span { position: absolute; inset-inline-start: 12px; font-size: 23px; color: var(--ip-muted); pointer-events: none; }
+#ip-scanner .search-field input { width: 100%; padding-inline-start: 37px; background: var(--ip-bg); font-size: 12px; }
+#ip-scanner .filter-bar select { font-size: 12px; }
+#ip-scanner .result-count { margin-inline-start: auto; color: var(--ip-muted); font-size: 12px; }
+#ip-scanner .table-scroll { overflow-x: auto; }
+#ip-scanner table { width: 100%; border-collapse: collapse; text-align: right; white-space: nowrap; }
+#ip-scanner th { font-size: 11px; font-weight: 500; color: var(--ip-muted); background: var(--ip-bg); padding: 10px 20px; }
+#ip-scanner td { padding: 11px 20px; border-top: 1px solid var(--ip-line); font-size: 12px; }
+#ip-scanner td .name { font-size: 13px; }
+#ip-scanner td .subtext { font-size: 11px; color: var(--ip-muted); display: block; direction: ltr; text-align: right; margin-top: 1px; }
+#ip-scanner tr:hover td { background: color-mix(in srgb,var(--ip-free) 45%,var(--ip-surface)); }
+#ip-scanner .status { display: inline-flex; align-items: center; gap: 5px; background: var(--ip-active); color: var(--ip-active-ink); padding: 3px 8px; border-radius: 6px; font-size: 11px; }
+#ip-scanner .status.known { background: var(--ip-known); color: var(--ip-known-ink); }
+#ip-scanner .status.unobserved, #ip-scanner .status.unscanned { background: var(--ip-free); color: var(--ip-free-ink); }
+#ip-scanner .edit-button { font-size: 17px; color: var(--ip-muted); min-height: 28px; padding: 1px 8px; }
+#ip-scanner .empty { padding: 30px 15px; text-align: center; color: var(--ip-muted); white-space: normal; }
+#ip-scanner .pagination { padding: 11px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--ip-line); color: var(--ip-muted); font-size: 11px; }
+#ip-scanner .pagination > div { display: flex; align-items: center; gap: 9px; }
+#ip-scanner .pagination button { min-height: 28px; padding: 4px 8px; }
+#ip-scanner .footnote { display: flex; align-items: flex-start; gap: 7px; font-size: 11px; color: var(--ip-muted); margin-top: 16px; }
+#ip-scanner dialog { color: var(--ip-ink); background: var(--ip-surface); border: 1px solid var(--ip-line); border-radius: 14px; width: min(420px,calc(100% - 32px)); padding: 24px; text-align: right; }
+#ip-scanner dialog::backdrop { background: #0006; }
+#ip-scanner dialog label { display: block; }
+#ip-scanner dialog input { display: block; width: 100%; margin: 8px 0; }
+#ip-scanner dialog small { color: var(--ip-muted); }
+#ip-scanner .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+#ip-scanner .dialog-error { color: var(--ip-known-ink); }
+@media (max-width: 800px) {
+  #ip-scanner .workspace { padding: 24px 20px; }
+  #ip-scanner .topbar { padding-inline: 20px; }
+  #ip-scanner .metrics { gap: 9px; }
+  #ip-scanner .metric { padding: 14px 12px; }
+  #ip-scanner .address-grid { grid-template-columns: repeat(16,minmax(0,1fr)); }
+  #ip-scanner .address-grid button { min-height: 28px; font-size: 11px; }
+  #ip-scanner td, #ip-scanner th { padding-inline: 14px; }
+}
+@media (max-width: 540px) {
+  #ip-scanner .workspace { padding: 22px 12px; }
+  #ip-scanner .topbar { padding: 14px 12px; flex-wrap: wrap; }
+  #ip-scanner .top-actions { gap: 4px; }
+  #ip-scanner .demo-label { font-size: 11px; padding: 4px 7px; }
+  #ip-scanner .identity { gap: 7px; }
+  #ip-scanner .heading { align-items: flex-start; flex-direction: column; gap: 16px; }
+  #ip-scanner .metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #ip-scanner .metric strong { font-size: 30px; }
+  #ip-scanner .map-panel { padding: 15px 12px; }
+  #ip-scanner .address-grid { grid-template-columns: repeat(8,minmax(0,1fr)); }
+  #ip-scanner .table-toolbar { align-items: flex-start; flex-wrap: wrap; padding-inline: 9px; }
+  #ip-scanner .tabs { gap: 0; }
+  #ip-scanner .tabs button { padding: 11px 7px; font-size: 12px; }
+  #ip-scanner .tabs button span { margin-inline-start: 2px; }
+  #ip-scanner .export { margin-inline-start: auto; }
+  #ip-scanner .filter-bar { padding: 12px; }
+  #ip-scanner .result-count { width: 100%; }
+  #ip-scanner .pagination { flex-wrap: wrap; padding-inline: 12px; }
+  #ip-scanner input { font-size: 16px !important; }
+}
+@media (pointer: coarse) {
+  #ip-scanner button { min-height: 44px; }
+  #ip-scanner .address-grid { grid-template-columns: repeat(auto-fit,minmax(44px,1fr)); }
+  #ip-scanner .address-grid button { min-height: 44px; }
+  #ip-scanner .edit-button, #ip-scanner .map-controls button, #ip-scanner .pagination button { min-height: 44px; }
+}
+</style>
+  <script>(() => {
+  'use strict';
+  const names = [
+    [1,'router.home','Ubiquiti','Gateway'],[10,'homeassistant.local','Home Assistant','Home Assistant'],
+    [12,'nas.local','Synology','NAS · גיבויים'],[15,'office-mac.local','Apple','מחשב העבודה'],
+    [20,'living-room-tv.local','Samsung','טלוויזיה · סלון'],[21,'chromecast.local','Google','Chromecast'],
+    [24,'jon-iphone.local','Apple','iPhone'],[30,'hue-bridge.local','Philips','Hue Bridge'],
+    [31,'shelly-kitchen.local','Shelly','תאורה · מטבח'],[32,'shelly-bedroom.local','Shelly','תריס · חדר שינה'],
+    [40,'esp-living-room.local','Espressif','חיישן · סלון'],[41,'esp-office.local','Espressif','חיישן · משרד'],
+    [50,'front-door.local','Reolink','מצלמה · כניסה'],[51,'garden.local','Reolink','מצלמה · גינה'],
+    [65,'laserjet.local','HP','מדפסת'],[80,'vacuum.local','Roborock','שואב אבק'],
+    [100,'access-point.local','Ubiquiti','נקודת גישה'],[120,'sonos.local','Sonos','רמקול · סלון']
+  ];
+  const timestamp = '2026-10-03T07:42:00+00:00';
+  const rows = Array.from({length:254},(_,i) => ({ip:`192.168.1.${i+1}`,status:'unobserved',name:'',alias:'',hostname:'',vendor:'',mac:'',source:'',last_seen:null}));
+  for (const [n,hostname,vendor,alias] of names) Object.assign(rows[n-1],{hostname,vendor,alias,name:alias,status:'occupied',mac:`02:00:00:00:01:${n.toString(16).padStart(2,'0').toUpperCase()}`,source:'ARP/mDNS',last_seen:timestamp});
+  for (const [n,name,vendor] of [[25,'tablet.local','Apple'],[60,'laptop.local','Lenovo'],[81,'guest-phone.local','Samsung']]) {
+    Object.assign(rows[n-1],{name,hostname:name,vendor,status:'known',last_seen:'2026-10-02T19:10:00+00:00',mac:`02:00:00:00:01:${n.toString(16).padStart(2,'0').toUpperCase()}`});
+  }
+  const selected = {cidr:'192.168.1.0/24',interface:'eth0',host_ip:'192.168.1.10',gateway:'192.168.1.1',supported:true,default:true,host_count:254};
+  let scan = {running:false,phase:'idle',error:null}, scanned_at=timestamp, duration=7.8, timer=null;
+  function payload() {
+    const ranges=[];
+    for (const row of rows) {
+      if (ranges.length && ranges.at(-1).status===row.status) { ranges.at(-1).end=row.ip; ranges.at(-1).count++; }
+      else ranges.push({start:row.ip,end:row.ip,status:row.status,count:1});
+    }
+    const counts={occupied:0,known:0,unobserved:0,unscanned:0};
+    rows.forEach(row => counts[row.status]++);
+    return {demo:true,selected,networks:[selected],network_error:null,scan_interval:300,scan:{...scan},snapshot:{
+      cidr:selected.cidr,rows:rows.map(row=>({...row})),ranges,counts,total:254,scanned_at,duration,warnings:[],reserved:['192.168.1.0','192.168.1.255']
+    }};
+  }
+  window.IPScannerTransport = {
+    state: async () => payload(),
+    network: async () => payload(),
+    scan: async () => {
+      if (scan.running) throw new Error('סריקה כבר מתבצעת');
+      scan={running:true,phase:'discovery',error:null,started_at:Date.now()/1000,cidr:selected.cidr};
+      timer=setTimeout(() => {scan.phase='names';timer=setTimeout(()=>{scan.running=false;scan.phase='idle';scanned_at=new Date().toISOString();duration=1.4;rows.filter(r=>r.status==='occupied').forEach(r=>r.last_seen=scanned_at);},700);},700);
+      return payload();
+    },
+    stop: async () => { clearTimeout(timer);scan.running=false;scan.phase='cancelled';return payload(); },
+    alias: async (ip,alias) => {
+      const row=rows.find(r=>r.ip===ip);
+      if (!row || alias.length>80) throw new Error('שם לא תקין');
+      row.alias=alias;row.name=alias||row.hostname;return payload();
+    },
+    export: () => {
+      const keys=['ip','status','name','hostname','mac','vendor','last_seen'];
+      const quote=value=>{let text=String(value||'');if(/^[\s]*[=+\-@]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};
+      const data='\ufeff'+[keys.join(','),...rows.map(r=>keys.map(k=>quote(r[k])).join(','))].join('\r\n');
+      const url=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'}));
+      const anchor=document.createElement('a');anchor.href=url;anchor.download='ip-scanner-demo.csv';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+  };
+})();
+
+</script>
+
+</head>
+<body>
+  <main id="ip-scanner" dir="rtl">
+    <header class="topbar">
+      <div class="identity"><span class="brand-mark" aria-hidden="true">◎</span><div><b>IP Scanner</b><span>HOME ASSISTANT</span></div></div>
+      <div class="top-actions"><span class="demo-label" data-ui="demo" hidden>הדמיה · נתונים לדוגמה</span><button class="icon-button" data-action="theme" aria-label="שינוי ערכת צבעים">◐</button></div>
+    </header>
+    <div class="workspace">
+      <section class="heading">
+        <div><div class="eyebrow">הרשת הביתית שלך, במבט אחד</div><h1>כל כתובת. כל מכשיר.</h1><p>גלה מה מחובר לרשת, ומה נשאר פנוי.</p></div>
+        <button class="primary" data-action="scan"><span aria-hidden="true">↻</span> <span data-ui="scan-label">סרוק את הרשת</span></button>
+      </section>
+      <section class="network-bar" aria-label="בחירת רשת ומצב סריקה">
+        <div class="network-field"><span class="live-dot" aria-hidden="true"></span><label for="network-select">הרשת שלי</label><select id="network-select" dir="ltr" aria-label="הרשת לסריקה"></select><span class="interface" data-ui="interface"></span></div>
+        <span class="scan-meta" data-ui="scan-meta" aria-live="polite">טוען את הרשת…</span>
+      </section>
+      <div class="notice error" data-ui="error" role="alert" hidden></div>
+      <div class="notice" data-ui="warning" hidden></div>
+      <section class="metrics" aria-label="סיכום כתובות">
+        <div class="metric"><span><i class="dot occupied"></i> כתובות תפוסות</span><strong data-ui="occupied">—</strong><small>זוהו בסריקה האחרונה</small></div>
+        <div class="metric"><span><i class="dot unobserved"></i> פנויות לכאורה</span><strong data-ui="unobserved">—</strong><small>לא זוהה מכשיר בכתובת</small></div>
+        <div class="metric"><span><i class="dot known"></i> נראו בעבר</span><strong data-ui="known">—</strong><small>לא ענו בסריקה האחרונה</small></div>
+        <div class="metric"><span><i class="dot neutral"></i> כתובות ברשת</span><strong data-ui="total">—</strong><small>ללא כתובות רשת ושידור</small></div>
+      </section>
+      <section class="map-panel" aria-label="מפת כתובות הרשת">
+        <div class="section-title"><div><h2>מפת הרשת</h2><span data-ui="map-prefix" class="mono"></span></div><div class="map-controls"><button data-action="map-prev" class="quiet" aria-label="עמוד קודם במפה">‹</button><span data-ui="map-page"></span><button data-action="map-next" class="quiet" aria-label="עמוד הבא במפה">›</button></div></div>
+        <div class="address-grid" data-ui="map"></div>
+        <div class="map-footer"><div class="legend"><span><i class="dot occupied"></i> תפוסה</span><span><i class="dot unobserved"></i> פנויה לכאורה</span><span><i class="dot known"></i> נראתה בעבר</span></div><span data-ui="selected-ip" aria-live="polite">בחר כתובת כדי להציג אותה בטבלה</span></div>
+      </section>
+      <section class="table-panel">
+        <div class="table-toolbar"><nav class="tabs" aria-label="תצוגת כתובות"><button data-tab="devices" class="active" aria-pressed="true">מכשירים <span data-ui="device-count">0</span></button><button data-tab="free" aria-pressed="false">כתובות פנויות <span data-ui="free-count">0</span></button><button data-tab="ranges" aria-pressed="false">טווחים</button></nav><button class="quiet export" data-action="export">↓ ייצוא CSV</button></div>
+        <div class="filter-bar"><label class="search-field"><span aria-hidden="true">⌕</span><input type="search" data-ui="search" placeholder="חיפוש לפי שם, כתובת או יצרן" aria-label="חיפוש בטבלה"></label><select data-ui="status-filter" aria-label="סינון לפי מצב"><option value="all">כל המצבים</option><option value="occupied">תפוסות</option><option value="known">נראו בעבר</option></select><span data-ui="result-count" class="result-count" aria-live="polite"></span></div>
+        <div class="table-scroll"><table><thead data-ui="table-head"></thead><tbody data-ui="table-body"></tbody></table></div>
+        <div class="pagination"><span data-ui="page-summary"></span><div><button class="quiet" data-action="prev">הקודם</button><span data-ui="page"></span><button class="quiet" data-action="next">הבא</button></div></div>
+      </section>
+      <footer class="footnote"><span aria-hidden="true">ⓘ</span><span>״פנויה לכאורה״: לא התקבלה תגובה. כתובת עשויה להיות שמורה ב־DHCP או שייכת למכשיר ישן או כבוי.</span></footer>
+    </div>
+    <dialog data-ui="alias-dialog"><form method="dialog"><h2>שם המכשיר</h2><p data-ui="alias-ip" class="mono"></p><label>שם שיוצג בטבלה<input data-ui="alias-input" maxlength="80" autocomplete="off" placeholder="לדוגמה: מצלמה · כניסה"></label><small>השאר ריק כדי לחזור לשם שזוהה ברשת.</small><p data-ui="alias-error" class="dialog-error" role="alert" hidden></p><div class="dialog-actions"><button class="quiet" value="cancel">ביטול</button><button type="button" class="primary" data-action="save-alias">שמירה</button></div></form></dialog>
+  </main>
+<script>(() => {
+  'use strict';
+  const root = document.getElementById('ip-scanner');
+  const api = window.IPScannerTransport;
+  const ui = name => root.querySelector(`[data-ui="${name}"]`);
+  const action = name => root.querySelector(`[data-action="${name}"]`);
+  const statusNames = {occupied: 'תפוסה', known: 'נראתה בעבר', unobserved: 'פנויה לכאורה', unscanned: 'טרם נסרקה'};
+  const saved = window.openai?.widgetState?.privateContent || {};
+  let tab = ['devices','free','ranges'].includes(saved.tab) ? saved.tab : 'devices';
+  let page = 0, mapPage = 0, selectedIP = '', editingIP = '', busy = false, payload = null, polling = null;
+  const PAGE_SIZE = 12, MAP_SIZE = 256;
+  const search = ui('search'), filter = ui('status-filter');
+  search.value = typeof saved.search === 'string' ? saved.search : '';
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const badge = status => `<span class="status ${status}"><i class="dot ${status}"></i>${statusNames[status]}</span>`;
+  function date(value) {
+    if (!value) return '—';
+    return new Date(value).toLocaleString('he-IL', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+  function persist() {
+    window.openai?.setWidgetState?.({modelContent:{view:tab}, privateContent:{tab,search:search.value}})?.catch(() => {});
+  }
+  function error(message) { ui('error').textContent = message || ''; ui('error').hidden = !message; }
+  function setTab(value) {
+    tab = value; page = 0;
+    root.querySelectorAll('[data-tab]').forEach(button => {
+      const active = button.dataset.tab === tab;
+      button.classList.toggle('active',active); button.setAttribute('aria-pressed',String(active));
+    });
+    filter.innerHTML = tab === 'free' ? '<option value="all">פנויות לכאורה</option>' :
+      '<option value="all">כל המצבים</option><option value="occupied">תפוסות</option><option value="known">נראו בעבר</option>' +
+      (tab === 'ranges' ? '<option value="unobserved">פנויות לכאורה</option><option value="unscanned">טרם נסרקו</option>' : '');
+    filter.disabled = tab === 'free';
+    renderTable();
+  }
+  function renderTable() {
+    if (!payload?.snapshot) return;
+    const snapshot = payload.snapshot;
+    const query = search.value.trim().toLocaleLowerCase();
+    let rows = tab === 'ranges' ? snapshot.ranges : snapshot.rows.filter(row => tab === 'free'
+      ? row.status === 'unobserved' : ['occupied','known'].includes(row.status));
+    if (filter.value !== 'all') rows = rows.filter(row => row.status === filter.value);
+    if (query) rows = rows.filter(row => {
+      if (tab === 'ranges') {
+        if (selectedIP && query === selectedIP) {
+          const number = ipNumber(selectedIP);
+          return number >= ipNumber(row.start) && number <= ipNumber(row.end);
+        }
+        return `${row.start} ${row.end} ${statusNames[row.status]}`.toLowerCase().includes(query);
+      }
+      return `${row.ip} ${row.name} ${row.hostname} ${row.vendor} ${row.mac}`.toLocaleLowerCase().includes(query);
+    });
+    const pages = Math.max(1,Math.ceil(rows.length / PAGE_SIZE));
+    page = Math.min(page,pages - 1);
+    const shown = rows.slice(page * PAGE_SIZE,(page + 1) * PAGE_SIZE);
+    const headers = tab === 'ranges' ? ['מכתובת','עד כתובת','כתובות','מצב'] : tab === 'free'
+      ? ['כתובת IP','מצב','הערה'] : ['מכשיר','כתובת IP','יצרן / MAC','מצב','נראה לאחרונה',''];
+    ui('table-head').innerHTML = `<tr>${headers.map(h => `<th scope="col">${h}</th>`).join('')}</tr>`;
+    let html = shown.map(row => {
+      if (tab === 'ranges') return `<tr><td class="mono">${escape(row.start)}</td><td class="mono">${escape(row.end)}</td><td>${row.count}</td><td>${badge(row.status)}</td></tr>`;
+      if (tab === 'free') return `<tr><td class="mono">${escape(row.ip)}</td><td>${badge(row.status)}</td><td>לא זוהה מכשיר בסריקה האחרונה</td></tr>`;
+      return `<tr><td><span class="name">${escape(row.name || 'מכשיר ללא שם')}</span><span class="subtext">${escape(row.hostname || 'אין שם שפורסם ברשת')}</span></td><td class="mono">${escape(row.ip)}</td><td>${escape(row.vendor || 'לא זוהה')}<span class="subtext mono">${escape(row.mac || '—')}</span></td><td>${badge(row.status)}</td><td>${date(row.last_seen)}</td><td><button class="edit-button" data-edit="${escape(row.ip)}" aria-label="עריכת שם ${escape(row.name || row.ip)}">✎</button></td></tr>`;
+    }).join('');
+    if (!html) html = `<tr><td colspan="${headers.length}" class="empty">${snapshot.scanned_at ? 'לא נמצאו כתובות התואמות לתצוגה. אפשר לשנות את החיפוש או הסינון.' : 'הרשת מוכנה. הפעל סריקה כדי לגלות מכשירים וכתובות פנויות לכאורה.'}</td></tr>`;
+    ui('table-body').innerHTML = html;
+    ui('result-count').textContent = `${rows.length} ${tab === 'ranges' ? 'טווחים' : 'כתובות'}`;
+    ui('page-summary').textContent = rows.length ? `${page*PAGE_SIZE+1}–${Math.min((page+1)*PAGE_SIZE,rows.length)} מתוך ${rows.length}` : 'אין תוצאות';
+    ui('page').textContent = `${page+1} / ${pages}`;
+    action('prev').disabled = page === 0; action('next').disabled = page >= pages-1;
+  }
+  function ipNumber(ip) { return ip.split('.').reduce((a,v) => a*256+Number(v),0); }
+  function renderMap() {
+    const snapshot = payload?.snapshot;
+    if (!snapshot) return;
+    const pages = Math.ceil(snapshot.rows.length/MAP_SIZE);
+    mapPage = Math.min(mapPage,Math.max(0,pages-1));
+    const rows = snapshot.rows.slice(mapPage*MAP_SIZE,(mapPage+1)*MAP_SIZE);
+    ui('map').innerHTML = rows.map(row => `<button class="${row.status}" data-ip="${row.ip}" aria-pressed="${row.ip === selectedIP}" aria-label="${escape(row.ip + ' · ' + statusNames[row.status] + (row.name ? ' · ' + row.name : ''))}">${row.ip.split('.').at(-1)}</button>`).join('');
+    ui('map-prefix').textContent = rows.length ? `${rows[0].ip} – ${rows.at(-1).ip}` : '';
+    ui('map-page').textContent = `${mapPage+1} / ${pages}`;
+    action('map-prev').disabled = mapPage === 0; action('map-next').disabled = mapPage === pages-1;
+  }
+  function render(next) {
+    payload = next;
+    ui('demo').hidden = !next.demo;
+    const selector = root.querySelector('#network-select');
+    const selected = next.selected?.cidr;
+    const networks = [...next.networks];
+    if (next.selected && !networks.some(n => n.cidr === selected)) networks.unshift(next.selected);
+    const signature = JSON.stringify(networks.map(n => [n.cidr,n.interface,n.supported]));
+    if (selector.dataset.signature !== signature) {
+      selector.innerHTML = networks.map(n => `<option value="${escape(n.cidr)}" ${n.supported ? '' : 'disabled'}>${escape(n.cidr)}${n.supported ? '' : ' · טווח גדול מדי'}</option>`).join('');
+      selector.dataset.signature = signature;
+    }
+    selector.value = selected || '';
+    selector.disabled = next.scan.running || busy;
+    ui('interface').textContent = next.selected?.interface || '';
+    action('scan').disabled = busy || !next.selected;
+    ui('scan-label').textContent = next.scan.running ? 'עצור סריקה' : 'סרוק את הרשת';
+    error(next.network_error || next.scan.error);
+    const snap = next.snapshot;
+    if (!snap) { ui('scan-meta').textContent = 'לא נמצאה רשת לסריקה'; return; }
+    for (const name of ['occupied','known','unobserved']) ui(name).textContent = snap.scanned_at ? snap.counts[name] : '—';
+    ui('total').textContent = snap.total;
+    ui('device-count').textContent = snap.counts.occupied + snap.counts.known;
+    ui('free-count').textContent = snap.counts.unobserved;
+    const elapsed = Math.max(0,Math.floor(Date.now()/1000-(next.scan.started_at || Date.now()/1000)));
+    ui('scan-meta').textContent = next.scan.running
+      ? `${next.scan.phase === 'names' ? 'משלים שמות מכשירים' : 'סורק את הרשת'} · ${elapsed} שניות`
+      : snap.scanned_at ? `סריקה אחרונה: ${date(snap.scanned_at)} · ${snap.duration} שנ׳` : 'טרם בוצעה סריקה';
+    const warning = snap.warnings.join(' · ');
+    ui('warning').textContent = warning; ui('warning').hidden = !warning;
+    renderMap(); renderTable();
+  }
+  async function perform(fn) {
+    if (busy) return;
+    busy = true;
+    action('scan').disabled = true;
+    try { render(await fn()); } catch (e) { error(e.message); }
+    finally { busy = false; action('scan').disabled = !payload?.selected; root.querySelector('#network-select').disabled = !!payload?.scan.running; }
+  }
+  async function refresh() {
+    if (busy) return;
+    try { render(await api.state()); } catch (e) { error('אין חיבור לתוסף: ' + e.message); }
+  }
+  root.addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button || button.disabled) return;
+    if (button.dataset.tab) { setTab(button.dataset.tab); persist(); }
+    if (button.dataset.ip) {
+      selectedIP = button.dataset.ip; search.value = selectedIP;
+      const row = payload.snapshot.rows.find(r => r.ip === selectedIP);
+      setTab(row.status === 'unobserved' ? 'free' : row.status === 'unscanned' ? 'ranges' : 'devices');
+      ui('selected-ip').textContent = `${selectedIP} · ${statusNames[row.status]}${row.name ? ' · ' + row.name : ''}`;
+      renderMap(); persist();
+    }
+    if (button.dataset.edit) {
+      editingIP = button.dataset.edit;
+      const row = payload.snapshot.rows.find(r => r.ip === editingIP);
+      ui('alias-ip').textContent = editingIP; ui('alias-input').value = row.alias || '';
+      ui('alias-error').hidden = true; ui('alias-dialog').showModal();
+    }
+    switch (button.dataset.action) {
+      case 'scan': perform(() => payload.scan.running ? api.stop() : api.scan()); break;
+      case 'prev': page--; renderTable(); break;
+      case 'next': page++; renderTable(); break;
+      case 'map-prev': mapPage--; renderMap(); break;
+      case 'map-next': mapPage++; renderMap(); break;
+      case 'export': api.export(); break;
+      case 'theme': root.style.colorScheme = getComputedStyle(root).colorScheme === 'dark' ? 'light' : 'dark'; break;
+      case 'save-alias': {
+        button.disabled = true;
+        api.alias(editingIP,ui('alias-input').value.trim()).then(next => {
+          render(next); ui('alias-dialog').close();
+        }).catch(e => { ui('alias-error').textContent = e.message; ui('alias-error').hidden = false; })
+          .finally(() => {button.disabled=false;}); break;
+      }
+    }
+  });
+  search.addEventListener('input', () => { page=0; selectedIP=''; renderMap(); renderTable(); persist(); });
+  filter.addEventListener('change', () => { page=0; renderTable(); });
+  root.querySelector('#network-select').addEventListener('change', event => {
+    page=0; mapPage=0; selectedIP=''; search.value='';
+    perform(() => api.network(event.target.value));
+  });
+  ui('alias-dialog').querySelector('form').addEventListener('submit', event => {
+    if (event.submitter?.value !== 'cancel') { event.preventDefault(); action('save-alias').click(); }
+  });
+  setTab(tab);
+  refresh();
+  polling = setInterval(() => { if (!document.hidden && root.isConnected) refresh(); },1500);
+  window.addEventListener('pagehide', () => clearInterval(polling));
+  window.addEventListener('openai:set_globals', event => {
+    const state = event.detail?.globals?.widgetState?.privateContent;
+    if (state && ['devices','free','ranges'].includes(state.tab)) {
+      search.value = typeof state.search === 'string' ? state.search : ''; setTab(state.tab);
+    }
+  });
+  if (globalThis.Tweak) {
+    const design = {density:'נוח', corners:12};
+    const tweak = new Tweak({container:root,onChange:() => {
+      root.querySelectorAll('.metric,.map-panel,.table-panel,.network-bar').forEach(el => {el.style.borderRadius=`${design.corners}px`;});
+      root.querySelectorAll('td').forEach(el => {el.style.paddingBlock=design.density === 'קומפקטי' ? '7px' : '11px';});
+    }});
+    tweak.addSelect(design,'density',{label:'צפיפות הטבלה',options:['נוח','קומפקטי']});
+    tweak.addSlider(design,'corners',{label:'עיגול פינות',min:0,max:20,unit:'px'});
+  }
+})();
+
+</script></body>
+</html>

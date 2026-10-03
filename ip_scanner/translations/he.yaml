@@ -1,0 +1,16 @@
+configuration:
+  network:
+    name: רשת לסריקה
+    description: auto לזיהוי אוטומטי, או טווח CIDR מקומי כגון 192.168.1.0/24.
+  scan_on_start:
+    name: סריקה בהפעלה
+    description: הפעל סריקה לאחר הפעלת התוסף.
+  scan_interval:
+    name: מרווח בין סריקות
+    description: בשניות. 300 הן חמש דקות; 0 מבטל סריקה מחזורית.
+  scan_timeout:
+    name: מגבלת זמן לסריקה
+    description: בשניות, בין 30 ל־600.
+  mdns:
+    name: זיהוי שמות mDNS
+    description: נסה להשלים שמות ממכשירים שמפרסמים שירותים ברשת המקומית.

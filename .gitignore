@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+data/
+.test-data/
+output/*.png
+output/*.zip
+output/demo-data/
+node_modules/

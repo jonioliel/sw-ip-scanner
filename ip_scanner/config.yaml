@@ -1,0 +1,32 @@
+name: IP Scanner
+version: "0.1.0"
+slug: ip_scanner
+description: Local network discovery, device names, address availability and ranges.
+url: https://github.com/jonioliel/ha-ip-scanner
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: true
+stage: experimental
+host_network: true
+privileged:
+  - NET_RAW
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:lan
+panel_title: IP Scanner
+panel_admin: true
+options:
+  network: auto
+  scan_on_start: true
+  scan_interval: 300
+  scan_timeout: 180
+  mdns: true
+schema:
+  network: str
+  scan_on_start: bool
+  scan_interval: int(0,86400)
+  scan_timeout: int(30,600)
+  mdns: bool

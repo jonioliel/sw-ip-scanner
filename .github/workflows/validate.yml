@@ -1,0 +1,67 @@
+name: Validate app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Verify app configuration
+        run: |
+          python -m pip install PyYAML
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          config = yaml.safe_load(Path('ip_scanner/config.yaml').read_text())
+          repo = yaml.safe_load(Path('repository.yaml').read_text())
+          assert config['ingress'] is True
+          assert config['host_network'] is True
+          assert config['privileged'] == ['NET_RAW']
+          assert set(config['options']) == set(config['schema'])
+          assert config['arch'] == ['amd64', 'aarch64']
+          assert repo['name'] and repo['url']
+          print('App configuration checked')
+          PY
+
+  build:
+    name: Build ${{ matrix.arch }}
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+          - arch: aarch64
+            platform: linux/arm64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: ./ip_scanner
+          platforms: ${{ matrix.platform }}
+          push: false
+          build-args: |
+            BUILD_VERSION=0.1.0
+            BUILD_ARCH=${{ matrix.arch }}
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}

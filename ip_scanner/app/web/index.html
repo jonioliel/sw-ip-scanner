@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="__BASE_PATH__">
+  <title>IP Scanner · Home Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="api.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="ip-scanner" dir="rtl">
+    <header class="topbar">
+      <div class="identity"><span class="brand-mark" aria-hidden="true">◎</span><div><b>IP Scanner</b><span>HOME ASSISTANT</span></div></div>
+      <div class="top-actions"><span class="demo-label" data-ui="demo" hidden>הדמיה · נתונים לדוגמה</span><button class="icon-button" data-action="theme" aria-label="שינוי ערכת צבעים">◐</button></div>
+    </header>
+    <div class="workspace">
+      <section class="heading">
+        <div><div class="eyebrow">הרשת הביתית שלך, במבט אחד</div><h1>כל כתובת. כל מכשיר.</h1><p>גלה מה מחובר לרשת, ומה נשאר פנוי.</p></div>
+        <button class="primary" data-action="scan"><span aria-hidden="true">↻</span> <span data-ui="scan-label">סרוק את הרשת</span></button>
+      </section>
+      <section class="network-bar" aria-label="בחירת רשת ומצב סריקה">
+        <div class="network-field"><span class="live-dot" aria-hidden="true"></span><label for="network-select">הרשת שלי</label><select id="network-select" dir="ltr" aria-label="הרשת לסריקה"></select><span class="interface" data-ui="interface"></span></div>
+        <span class="scan-meta" data-ui="scan-meta" aria-live="polite">טוען את הרשת…</span>
+      </section>
+      <div class="notice error" data-ui="error" role="alert" hidden></div>
+      <div class="notice" data-ui="warning" hidden></div>
+      <section class="metrics" aria-label="סיכום כתובות">
+        <div class="metric"><span><i class="dot occupied"></i> כתובות תפוסות</span><strong data-ui="occupied">—</strong><small>זוהו בסריקה האחרונה</small></div>
+        <div class="metric"><span><i class="dot unobserved"></i> פנויות לכאורה</span><strong data-ui="unobserved">—</strong><small>לא זוהה מכשיר בכתובת</small></div>
+        <div class="metric"><span><i class="dot known"></i> נראו בעבר</span><strong data-ui="known">—</strong><small>לא ענו בסריקה האחרונה</small></div>
+        <div class="metric"><span><i class="dot neutral"></i> כתובות ברשת</span><strong data-ui="total">—</strong><small>ללא כתובות רשת ושידור</small></div>
+      </section>
+      <section class="map-panel" aria-label="מפת כתובות הרשת">
+        <div class="section-title"><div><h2>מפת הרשת</h2><span data-ui="map-prefix" class="mono"></span></div><div class="map-controls"><button data-action="map-prev" class="quiet" aria-label="עמוד קודם במפה">‹</button><span data-ui="map-page"></span><button data-action="map-next" class="quiet" aria-label="עמוד הבא במפה">›</button></div></div>
+        <div class="address-grid" data-ui="map"></div>
+        <div class="map-footer"><div class="legend"><span><i class="dot occupied"></i> תפוסה</span><span><i class="dot unobserved"></i> פנויה לכאורה</span><span><i class="dot known"></i> נראתה בעבר</span></div><span data-ui="selected-ip" aria-live="polite">בחר כתובת כדי להציג אותה בטבלה</span></div>
+      </section>
+      <section class="table-panel">
+        <div class="table-toolbar"><nav class="tabs" aria-label="תצוגת כתובות"><button data-tab="devices" class="active" aria-pressed="true">מכשירים <span data-ui="device-count">0</span></button><button data-tab="free" aria-pressed="false">כתובות פנויות <span data-ui="free-count">0</span></button><button data-tab="ranges" aria-pressed="false">טווחים</button></nav><button class="quiet export" data-action="export">↓ ייצוא CSV</button></div>
+        <div class="filter-bar"><label class="search-field"><span aria-hidden="true">⌕</span><input type="search" data-ui="search" placeholder="חיפוש לפי שם, כתובת או יצרן" aria-label="חיפוש בטבלה"></label><select data-ui="status-filter" aria-label="סינון לפי מצב"><option value="all">כל המצבים</option><option value="occupied">תפוסות</option><option value="known">נראו בעבר</option></select><span data-ui="result-count" class="result-count" aria-live="polite"></span></div>
+        <div class="table-scroll"><table><thead data-ui="table-head"></thead><tbody data-ui="table-body"></tbody></table></div>
+        <div class="pagination"><span data-ui="page-summary"></span><div><button class="quiet" data-action="prev">הקודם</button><span data-ui="page"></span><button class="quiet" data-action="next">הבא</button></div></div>
+      </section>
+      <footer class="footnote"><span aria-hidden="true">ⓘ</span><span>״פנויה לכאורה״: לא התקבלה תגובה. כתובת עשויה להיות שמורה ב־DHCP או שייכת למכשיר ישן או כבוי.</span></footer>
+    </div>
+    <dialog data-ui="alias-dialog"><form method="dialog"><h2>שם המכשיר</h2><p data-ui="alias-ip" class="mono"></p><label>שם שיוצג בטבלה<input data-ui="alias-input" maxlength="80" autocomplete="off" placeholder="לדוגמה: מצלמה · כניסה"></label><small>השאר ריק כדי לחזור לשם שזוהה ברשת.</small><p data-ui="alias-error" class="dialog-error" role="alert" hidden></p><div class="dialog-actions"><button class="quiet" value="cancel">ביטול</button><button type="button" class="primary" data-action="save-alias">שמירה</button></div></form></dialog>
+  </main>
+</body>
+</html>
