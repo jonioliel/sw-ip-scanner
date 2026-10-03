@@ -1,5 +1,7 @@
 # IP Scanner for Home Assistant
 
+[![Validate app](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml/badge.svg)](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml)
+
 תוסף מקומי ל־Home Assistant OS שמציג את רשת ה־IPv4 שאליה מחובר השרת, דרך Ingress בתוך Home Assistant.
 
 ## התקנה דרך חנות התוספים
@@ -28,7 +30,7 @@
 - שמות מותאמים, היסטוריה שנשמרת בהפעלה מחדש וסריקה מחזורית.
 - ממשק בעברית, התאמה לטלפון, מצב בהיר וכהה.
 
-**הסטטוס: גרסת 0.1.0 ניסיונית מוכנה להתקנה מקומית.** נבדקו לוגיקת הסריקה, API וממשק ההדגמה. בניית Docker, סריקה על Linux והפעלת Ingress על Home Assistant OS צריכות בדיקה על שרת HA; הן אינן מאומתות בסביבת הפיתוח הזו.
+**הסטטוס: גרסת 0.1.0 ניסיונית מוכנה להתקנה לבדיקה.** עברו 16 בדיקות לוגיקה ו־API ובדיקות ממשק ההדגמה. ב־GitHub Actions עברו גם הבדיקות על Linux ובניית Docker ל־amd64 ול־aarch64. סריקה אמיתית והפעלת Ingress על Home Assistant OS עדיין דורשות אימות על שרת HA. [תוצאות הבדיקות והבנייה](https://github.com/jonioliel/ha-ip-scanner/actions/workflows/validate.yml).
 
 ## התקנה מקומית
 
